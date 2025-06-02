@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Magische Orakel App</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #111827; /* gray-900 for a dark background */
+    color: #d1d5db; /* gray-300 for base text */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.fade-in {
+    animation: fadeInAnimation 0.5s ease-in forwards;
+}
+@keyframes fadeInAnimation {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.rotate-orb {
+    animation: spin 4s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+/* Focus styles for better accessibility */
+button:focus-visible, input:focus-visible {
+    outline: 2px solid #fbbf24; /* amber-400 */
+    outline-offset: 2px;
+}
+</style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+
+<div class="w-full max-w-2xl min-h-[600px] bg-gradient-to-br from-gray-900 to-indigo-900 text-white font-inter flex flex-col items-center justify-center p-4 sm:p-8 rounded-2xl shadow-2xl">
+    <h1 id="demo-title" class="text-3xl sm:text-4xl font-extrabold mb-6 text-center drop-shadow-lg text-yellow-300">
+        Het Orakel van de Duizend Antwoorden
+    </h1>
+    <p id="demo-message" class="text-lg mb-6 text-center px-4 py-3 bg-white bg-opacity-10 rounded-lg shadow-md max-w-xl" aria-live="polite">
+        Denk aan een vraag en klik op 'Vraag het Orakel'.
+    </p>
+    <div class="w-full max-w-sm mb-5">
+        <input id="demo-input" type="text" placeholder="Typ hier je vraag (optioneel)" class="w-full p-3 text-base bg-gray-800 text-white rounded-lg border-2 border-gray-700 focus:border-blue-500 placeholder-gray-400 shadow-inner" aria-label="Voer hier uw vraag in">
+    </div>
+    <div id="demo-buttons-container" class="mt-4 flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+        <button id="demo-ask-btn" class="w-full sm:w-auto px-8 py-3 text-xl font-bold rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 focus:outline-none bg-green-600 text-white hover:bg-green-500 focus:ring-4 focus:ring-green-700 focus:ring-opacity-50" aria-label="Vraag het orakel voor een antwoord">
+            Vraag het Orakel
+        </button>
+        <button id="demo-reset-btn" class="w-full sm:w-auto hidden px-8 py-3 bg-blue-600 text-white text-xl font-bold rounded-full shadow-lg hover:bg-blue-500 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-700 focus:ring-opacity-50" aria-label="Begin met een nieuwe vraag" tabindex="-1">
+            Nieuwe Vraag
+        </button>
+    </div>
+    <div id="demo-answer-container" class="mt-10 min-h-[200px] flex items-center justify-center w-full">
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const generateLargeAnswers = () => {
+            const prefixes = ["Het lijkt erop dat", "De kosmos fluistert dat", "Zonder twijfel,", "Het orakel voorspelt dat", "De energieën suggereren dat", "Een innerlijke stem zegt dat", "De kaarten onthullen dat", "De toekomst houdt in dat", "Het is duidelijk dat", "De waarheid is dat", "Men zou kunnen zeggen dat", "Sterren wijzen op het feit dat", "De winden van verandering brengen mee dat", "Een diep inzicht toont dat", "Oude wijsheid leert ons dat"];
+            const coreMessages = ["je succes zult vinden.", "geduld een deugd is.", "een nieuwe kans zich aandient.", "je intuïtie moet volgen.", "verandering onvermijdelijk is.", "de antwoorden binnenin liggen.", "samenwerking essentieel is.", "een uitdaging wacht.", "vreugde nabij is.", "je focus moet houden.", "een onverwachte wending komt.", "de weg vrij is.", "je moedig moet zijn.", "een geheim wordt onthuld.", "je niet alleen bent.", "de tijd rijp is.", "een wens uitkomt.", "je trouw moet blijven aan jezelf.", "de reis belangrijker is dan de bestemming.", "een onverwachte bondgenoot verschijnt.", "de waarheid je zal bevrijden.", "een lichte last zal verdwijnen.", "de hemel de limiet is.", "een moment van helderheid zal komen.", "de antwoorden in de lucht hangen.", "een onverwachte oplossing zich aandient.", "de sleutel in je handen ligt.", "een nieuwe deur zal openen.", "een kans om te groeien hier is.", "de toekomst nu is.", "een zegen in vermomming is.", "de antwoorden dichtbij zijn.", "een nieuw perspectief nodig is.", "de weg lang is, maar de beloning groot.", "een onverwachte vreugde zal komen.", "de waarheid zal zegevieren.", "een nieuw begin nabij is.", "de antwoorden overal zijn.", "een moment van vrede zal heersen.", "de weg geplaveid is.", "een kans om te bloeien daar is.", "de toekomst rooskleurig is.", "een onverwachte verrassing wacht.", "een nieuw hoofdstuk begint.", "een moment van reflectie nodig is.", "je dromen moet najagen.", "een belangrijke beslissing nadert.", "je hart moet volgen.", "de tijd het zal leren.", "een periode van groei begint.", "je innerlijke kracht moet vinden.", "de balans belangrijk is.", "nieuwe deuren zullen openen.", "je wijsheid moet delen.", "een onverwachte ontdekking zal plaatsvinden.", "de stilte zal spreken.", "je geduld beloond wordt."];
+            const suffixes = ["Wees voorbereid.", "Vertrouw op het proces.", "Laat je leiden.", "Het is jouw tijd.", "Ga ervoor.", "Denk erover na.", "Kijk goed om je heen.", "Het zal zich ontvouwen.", "De sterren staan gunstig.", "Alles komt goed.", "Blijf positief.", "Handel wijs.", "Luister aandachtig.", "De antwoorden komen vanzelf.", "Wees open voor mogelijkheden.", "Het universum spreekt.", "Een nieuw pad ligt voor je.", "Volg de stroom.", "Je bent op de goede weg.", "De magie is met je.", "Geloof in jezelf.", "De oplossing is nabij.", "Een heldere visie is nodig.", "De waarheid zal zich tonen.", "Een nieuw perspectief zal helpen.", "De tijd is aan jouw zijde.", "Alles zal op zijn plaats vallen.", "Een onverwachte kans dient zich aan.", "De weg is open.", "Er is hoop.", "De energie stroomt.", "Een wonder is mogelijk."];
+            
+            const generated = new Set();
+            // Ensure at least 1000 unique answers
+            while (generated.size < 1000) {
+                const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                const core = coreMessages[Math.floor(Math.random() * coreMessages.length)];
+                const suffix = suffixes[Math.floor(Math.random() * suffixes.length)];
+                generated.add(`${prefix} ${core} ${suffix}`);
+            }
+            return Array.from(generated);
+        };
+
+        const demoAnswers = generateLargeAnswers();
+
+        const demoMessageEl = document.getElementById('demo-message');
+        const demoInputEl = document.getElementById('demo-input');
+        const demoAskBtn = document.getElementById('demo-ask-btn');
+        const demoResetBtn = document.getElementById('demo-reset-btn');
+        const demoAnswerContainer = document.getElementById('demo-answer-container');
+        
+        let demoState = 'idle'; // 'idle', 'thinking', 'revealing'
+
+        let chimeSynth, whooshSynth;
+        if (typeof Tone !== 'undefined') {
+            try {
+                // Improved synth definitions for more pleasant sounds
+                chimeSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: 'triangle8' }, // A softer, more "magical" waveform
+                    envelope: { attack: 0.01, decay: 0.4, sustain: 0.1, release: 1.4 },
+                    volume: -12 // Slightly reduced volume
+                }).toDestination();
+
+                whooshSynth = new Tone.NoiseSynth({
+                    noise: { type: 'pink' }, // Pink noise is often perceived as more pleasant than white
+                    envelope: { attack: 0.05, decay: 0.35, sustain: 0, release: 0.3 },
+                    filter: { Q: 4, type: 'bandpass', frequency: 600, rolloff: -12 },
+                    filterEnvelope: { attack: 0.06, decay: 0.25, sustain: 0, release: 0.2, baseFrequency: 300, octaves: 2.5 },
+                    volume: -18 // Reduced volume for subtlety
+                }).toDestination();
+            } catch (error) {
+                console.error("Tone.js initialisatie mislukt:", error);
+                chimeSynth = null; whooshSynth = null;
+            }
+        } else {
+            console.warn("Tone.js is niet geladen. Geluidseffecten zijn niet beschikbaar.");
+        }
+
+        const playSound = async (synth, ...args) => {
+            if (synth && typeof Tone !== 'undefined') {
+                try {
+                    if (Tone.context.state !== 'running') {
+                        await Tone.start();
+                    }
+                    if (synth.name === "PolySynth") { // For chime
+                        synth.triggerAttackRelease(...args);
+                    } else { // For noise synth (whoosh)
+                         synth.triggerAttackRelease(args[0]); // duration
+                    }
+                } catch (error) {
+                    console.error("Fout bij afspelen geluid:", error);
+                }
+            }
+        };
+
+        const handleReset = () => {
+            demoState = 'idle';
+            demoMessageEl.textContent = "Denk aan een vraag en klik op 'Vraag het Orakel'.";
+            demoInputEl.value = '';
+            demoInputEl.disabled = false;
+            demoAskBtn.disabled = false;
+            demoAskBtn.textContent = 'Vraag het Orakel';
+            demoAskBtn.setAttribute('aria-disabled', 'false');
+            demoAskBtn.setAttribute('tabindex', '0');
+            demoResetBtn.classList.add('hidden');
+            demoResetBtn.setAttribute('tabindex', '-1');
+            demoAnswerContainer.innerHTML = '';
+            demoInputEl.focus();
+        };
+
+        const handleAskOracle = () => {
+            if (demoState === 'idle' || demoState === 'revealing') {
+                demoState = 'thinking';
+                demoMessageEl.textContent = 'Het orakel denkt na over je vraag...';
+                demoInputEl.disabled = true;
+                demoAskBtn.disabled = true;
+                demoAskBtn.textContent = 'Orakel Denkt Na...';
+                demoAskBtn.setAttribute('aria-disabled', 'true');
+                demoAskBtn.setAttribute('tabindex', '-1');
+                demoResetBtn.classList.remove('hidden');
+                demoResetBtn.setAttribute('tabindex', '0');
+                
+                playSound(whooshSynth, "0.4");
+
+                demoAnswerContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center bg-white bg-opacity-10 rounded-xl shadow-2xl p-8">
+                        <div class="relative w-24 h-24 bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 rounded-full flex items-center justify-center rotate-orb shadow-lg" aria-hidden="true">
+                            <svg class="w-16 h-16 text-yellow-300 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        </div>
+                        <p class="text-xl sm:text-2xl font-semibold text-white text-center mt-4">Het orakel raadpleegt de kosmos...</p>
+                    </div>`;
+                
+                setTimeout(() => {
+                    demoState = 'revealing';
+                    const randomIndex = Math.floor(Math.random() * demoAnswers.length);
+                    const answer = demoAnswers[randomIndex];
+                    
+                    demoMessageEl.textContent = 'Dit is wat het orakel te zeggen heeft:';
+                    demoAskBtn.disabled = false;
+                    demoAskBtn.textContent = 'Vraag het Orakel';
+                    demoAskBtn.setAttribute('aria-disabled', 'false');
+                    demoAskBtn.setAttribute('tabindex', '0');
+
+                    playSound(chimeSynth, ["C4", "E4", "G4"], "1n", Tone.now() + 0.05);
+                    
+                    demoAnswerContainer.innerHTML = `
+                        <div class="flex flex-col items-center justify-center bg-white rounded-xl shadow-2xl p-6 sm:p-8 border-4 border-yellow-400 transform scale-100 fade-in w-full max-w-lg">
+                            <p class="text-xl text-gray-800 font-semibold mb-4">Het Orakel Antwoordt:</p>
+                            <div class="text-2xl sm:text-3xl text-gray-900 font-bold text-center">
+                                "${answer}"
+                            </div>
+                        </div>`;
+                }, 2500);
+            }
+        };
+        
+        demoAskBtn.addEventListener('click', handleAskOracle);
+        demoResetBtn.addEventListener('click', handleReset);
+        
+        // Initial focus on the input field
+        demoInputEl.focus();
+    });
+</script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
